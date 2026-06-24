@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
-npm install -g pnpm
+corepack enable
+corepack prepare pnpm@latest --activate
 
-pnpm install
+pnpm install --frozen-lockfile
 
 export BASE_PATH=/
 
