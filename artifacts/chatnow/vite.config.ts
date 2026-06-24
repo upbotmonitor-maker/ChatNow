@@ -16,43 +16,27 @@ import { defineConfig, type Plugin } from "vite";
           messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? "",
           appId: process.env.VITE_FIREBASE_APP_ID ?? "",
         };
-
         const swContent = `importScripts("https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js");
   importScripts("https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js");
-
   firebase.initializeApp(${JSON.stringify(config)});
   const messaging = firebase.messaging();
-
   messaging.onBackgroundMessage((payload) => {
     const title = payload.notification?.title ?? "Yeni mesaj";
     const body = payload.notification?.body ?? "";
     const icon = payload.notification?.icon ?? "/favicon.svg";
-    self.registration.showNotification(title, {
-      body,
-      icon,
-      badge: "/favicon.svg",
-      vibrate: [200, 100, 200],
-      data: payload.data,
-    });
+    self.registration.showNotification(title, { body, icon, badge: "/favicon.svg", vibrate: [200, 100, 200], data: payload.data });
   });
-
   self.addEventListener("notificationclick", (event) => {
     event.notification.close();
-    event.waitUntil(
-      clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
-        for (const client of list) {
-          if ("focus" in client) return client.focus();
-        }
-        return clients.openWindow("/");
-      })
-    );
-  });
-  `;
-
+    event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const client of list) { if ("focus" in client) return client.focus(); }
+      return clients.openWindow("/");
+    }));
+  });`;
         const outPath = path.resolve(import.meta.dirname, "dist/public/firebase-messaging-sw.js");
         fs.mkdirSync(path.dirname(outPath), { recursive: true });
         fs.writeFileSync(outPath, swContent, "utf-8");
-        console.log("✅ firebase-messaging-sw.js generated with injected config");
+        console.log("✅ firebase-messaging-sw.js generated");
       },
     };
   }
@@ -82,22 +66,21 @@ import { defineConfig, type Plugin } from "vite";
         "@": path.resolve(import.meta.dirname, "src"),
         "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
       },
-      // Prevent duplicate React instances across pnpm monorepo packages
-      dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
-    },
-    // Pre-bundle React so it's never loaded twice
-    optimizeDeps: {
-      include: [
-        "react",
-        "react-dom",
-        "react/jsx-runtime",
-        "react-dom/client",
-      ],
+      dedupe: ["react", "react-dom"],
     },
     root: path.resolve(import.meta.dirname),
     build: {
       outDir: path.resolve(import.meta.dirname, "dist/public"),
       emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes("/node_modules/react/") || id.includes("/node_modules/react-dom/")) {
+              return "react-vendor";
+            }
+          },
+        },
+      },
     },
     server: {
       port,
