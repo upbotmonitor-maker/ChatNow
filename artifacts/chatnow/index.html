@@ -1,24 +1,89 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>ChatNow</title>
-    <meta name="description" content="ChatNow — built on Replit. Update this description to reflect the app." />
-    <meta name="robots" content="index, follow" />
-    <meta property="og:title" content="ChatNow" />
-    <meta property="og:description" content="ChatNow — built on Replit. Update this description to reflect the app." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="ChatNow" />
-    <meta name="twitter:description" content="ChatNow — built on Replit. Update this description to reflect the app." />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+  <html lang="tr">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+      <title>ChatNow</title>
+      <meta name="description" content="ChatNow" />
+      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; background: #0b0c10; color: #fff; font-family: Inter, system-ui, sans-serif; }
+        #root { height: 100%; }
+        #initial-loader {
+          position: fixed; inset: 0;
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          background: #0b0c10; z-index: 9999;
+        }
+        #initial-loader .spinner {
+          width: 36px; height: 36px;
+          border: 3px solid rgba(255,255,255,0.12);
+          border-top-color: #a78bfa;
+          border-radius: 50%;
+          animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #initial-loader p { margin-top: 12px; color: rgba(255,255,255,0.45); font-size: 14px; }
+        #error-screen {
+          display: none; position: fixed; inset: 0;
+          background: #0b0c10; padding: 2rem;
+          overflow: auto; z-index: 99999;
+        }
+        #error-screen h1 { color: #f87171; font-size: 1.2rem; margin-bottom: 1rem; }
+        #error-screen pre {
+          background: #1a1b1e; padding: 1rem; border-radius: 0.5rem;
+          color: #fca5a5; font-size: 0.8rem; white-space: pre-wrap;
+          word-break: break-all;
+        }
+      </style>
+    </head>
+    <body>
+      <!-- Visible loader shown before React mounts -->
+      <div id="initial-loader">
+        <div class="spinner"></div>
+        <p>Yükleniyor...</p>
+      </div>
+
+      <!-- Error screen shown if JS fails -->
+      <div id="error-screen">
+        <h1>⚠️ JavaScript Hatası</h1>
+        <pre id="error-detail"></pre>
+      </div>
+
+      <div id="root"></div>
+
+      <script>
+        // Catch ALL JS errors before React loads
+        window.onerror = function(msg, src, line, col, err) {
+          document.getElementById('initial-loader').style.display = 'none';
+          var el = document.getElementById('error-screen');
+          var detail = document.getElementById('error-detail');
+          el.style.display = 'block';
+          detail.textContent = 'Mesaj: ' + msg + '\nKaynak: ' + src + '\nSatır: ' + line + '\n\n' + (err && err.stack ? err.stack : '');
+          return true;
+        };
+        window.addEventListener('unhandledrejection', function(e) {
+          document.getElementById('initial-loader').style.display = 'none';
+          var el = document.getElementById('error-screen');
+          var detail = document.getElementById('error-detail');
+          el.style.display = 'block';
+          detail.textContent = 'Promise hatası:\n' + (e.reason && e.reason.stack ? e.reason.stack : String(e.reason));
+        });
+        // Hide loader when React mounts (MutationObserver)
+        var obs = new MutationObserver(function() {
+          if (document.getElementById('root').children.length > 0) {
+            document.getElementById('initial-loader').style.display = 'none';
+            obs.disconnect();
+          }
+        });
+        obs.observe(document.getElementById('root'), { childList: true });
+      </script>
+
+      <script type="module" src="/src/main.tsx"></script>
+    </body>
+  </html>
+  
