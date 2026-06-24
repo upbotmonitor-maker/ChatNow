@@ -61,24 +61,22 @@ import { defineConfig, type Plugin } from "vite";
   const port = Number(rawPort) || 3000;
   const basePath = process.env.BASE_PATH ?? "/";
 
+  // Root node_modules (2 levels up from artifacts/chatnow)
+  const rootNodeModules = path.resolve(import.meta.dirname, "../../node_modules");
+
   export default defineConfig({
     base: basePath,
     plugins: [
       react(),
       tailwindcss(),
       firebaseSwPlugin(),
-      ...(process.env.NODE_ENV !== "production" &&
-      process.env.REPL_ID !== undefined
+      ...(process.env.NODE_ENV !== "production" && process.env.REPL_ID !== undefined
         ? [
             await import("@replit/vite-plugin-runtime-error-modal").then((m) => m.default()),
             await import("@replit/vite-plugin-cartographer").then((m) =>
-              m.cartographer({
-                root: path.resolve(import.meta.dirname, ".."),
-              }),
+              m.cartographer({ root: path.resolve(import.meta.dirname, "..") })
             ),
-            await import("@replit/vite-plugin-dev-banner").then((m) =>
-              m.devBanner(),
-            ),
+            await import("@replit/vite-plugin-dev-banner").then((m) => m.devBanner()),
           ]
         : []),
     ],
@@ -86,22 +84,38 @@ import { defineConfig, type Plugin } from "vite";
       alias: {
         "@": path.resolve(import.meta.dirname, "src"),
         "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
+        // Force single React instance across the entire monorepo
+        "react": path.resolve(rootNodeModules, "react"),
+        "react-dom": path.resolve(rootNodeModules, "react-dom"),
+        "react/jsx-runtime": path.resolve(rootNodeModules, "react/jsx-runtime"),
+        "react/jsx-dev-runtime": path.resolve(rootNodeModules, "react/jsx-dev-runtime"),
       },
-      dedupe: ["react", "react-dom"],
+      dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
+    },
+    // Force Vite to pre-bundle React — prevents circular dependency / null React issues
+    optimizeDeps: {
+      include: [
+        "react",
+        "react-dom",
+        "react/jsx-runtime",
+        "react-dom/client",
+      ],
+      force: true,
     },
     root: path.resolve(import.meta.dirname),
     build: {
       outDir: path.resolve(import.meta.dirname, "dist/public"),
       emptyOutDir: true,
+      commonjsOptions: {
+        include: [/node_modules/],
+      },
     },
     server: {
       port,
       strictPort: true,
       host: "0.0.0.0",
       allowedHosts: true,
-      fs: {
-        strict: true,
-      },
+      fs: { strict: true },
     },
     preview: {
       port,
