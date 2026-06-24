@@ -61,9 +61,6 @@ import { defineConfig, type Plugin } from "vite";
   const port = Number(rawPort) || 3000;
   const basePath = process.env.BASE_PATH ?? "/";
 
-  // Root node_modules (2 levels up from artifacts/chatnow)
-  const rootNodeModules = path.resolve(import.meta.dirname, "../../node_modules");
-
   export default defineConfig({
     base: basePath,
     plugins: [
@@ -84,15 +81,11 @@ import { defineConfig, type Plugin } from "vite";
       alias: {
         "@": path.resolve(import.meta.dirname, "src"),
         "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
-        // Force single React instance across the entire monorepo
-        "react": path.resolve(rootNodeModules, "react"),
-        "react-dom": path.resolve(rootNodeModules, "react-dom"),
-        "react/jsx-runtime": path.resolve(rootNodeModules, "react/jsx-runtime"),
-        "react/jsx-dev-runtime": path.resolve(rootNodeModules, "react/jsx-dev-runtime"),
       },
+      // Prevent duplicate React instances across pnpm monorepo packages
       dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
     },
-    // Force Vite to pre-bundle React — prevents circular dependency / null React issues
+    // Pre-bundle React so it's never loaded twice
     optimizeDeps: {
       include: [
         "react",
@@ -100,15 +93,11 @@ import { defineConfig, type Plugin } from "vite";
         "react/jsx-runtime",
         "react-dom/client",
       ],
-      force: true,
     },
     root: path.resolve(import.meta.dirname),
     build: {
       outDir: path.resolve(import.meta.dirname, "dist/public"),
       emptyOutDir: true,
-      commonjsOptions: {
-        include: [/node_modules/],
-      },
     },
     server: {
       port,
