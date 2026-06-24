@@ -1,0 +1,14 @@
+services:
+    - type: web
+      name: chatnow
+      env: node
+      buildCommand: npm install -g pnpm && pnpm install --frozen-lockfile && bash render-build.sh
+      staticPublishPath: artifacts/chatnow/dist/public
+      routes:
+        - type: rewrite
+          source: /*
+          destination: /index.html
+      envVars:
+        - key: NODE_VERSION
+          value: 20
+  
