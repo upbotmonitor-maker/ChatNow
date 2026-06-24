@@ -81,6 +81,8 @@ function App() {
   const [maintenanceActive, setMaintenanceActive] = useState(false);
   const maintenanceUnsubRef = useRef<(() => void) | null>(null);
 
+  const handleSplashDone = useCallback(() => setSplashDone(true), []);
+
   useEffect(() => {
     document.documentElement.classList.add("dark");
   }, []);
@@ -116,7 +118,7 @@ function App() {
 
   return (
     <>
-      {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
+      {!splashDone && <SplashScreen onDone={handleSplashDone} />}
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <WouterRouter hook={useHashLocation}>
