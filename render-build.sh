@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-  set -e
+set -e
 
-  export BASE_PATH=/
+npm install -g pnpm
 
-  pnpm --filter @workspace/chatnow run build
-  
+pnpm install
+
+export BASE_PATH=/
+
+pnpm --filter @workspace/chatnow run build
