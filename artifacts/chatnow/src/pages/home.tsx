@@ -468,16 +468,17 @@ export default function Home() {
     await setDoc(doc(db, "users", user.uid), { generatingImage: next }, { merge: true });
   };
 
-  if (loading || !user || !userData) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-muted-foreground text-sm">Yükleniyor...</p>
-        </div>
+      <div style={{ position: "fixed", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0d0e11" }}>
+        <div style={{ width: 36, height: 36, border: "3px solid rgba(255,255,255,0.12)", borderTop: "3px solid #a78bfa", borderRadius: "50%", animation: "hspin 0.9s linear infinite" }} />
+        <p style={{ color: "rgba(255,255,255,0.45)", marginTop: 12, fontSize: 14, fontFamily: "system-ui, sans-serif" }}>Yükleniyor...</p>
+        <style>{"@keyframes hspin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"}</style>
       </div>
     );
   }
+
+  if (!user || !userData) return null;
 
   const renderProfilePhoto = (u: UserData, size: string = "h-10 w-10", showGif: boolean = false) => {
     const isGifActive = showGif && u.gifEnabled && u.gifUrl && u.gifExpireTime && (u.gifExpireTime.toDate() > new Date());
