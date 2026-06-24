@@ -41,7 +41,10 @@ import { useState, useEffect, useRef } from 'react';
     };
 
     useEffect(() => {
+      const fallbackTimer = setTimeout(() => setLoading(false), 5000);
+
       const unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
+        clearTimeout(fallbackTimer);
         setUser(currentUser);
         currentUserRef.current = currentUser;
 
@@ -71,6 +74,7 @@ import { useState, useEffect, useRef } from 'react';
         }
       });
       return () => {
+        clearTimeout(fallbackTimer);
         unsubAuth();
         if (userDataUnsubRef.current) userDataUnsubRef.current();
       };
