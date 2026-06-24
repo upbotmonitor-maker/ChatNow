@@ -3,7 +3,6 @@ import { defineConfig, type Plugin } from "vite";
   import tailwindcss from "@tailwindcss/vite";
   import path from "path";
   import fs from "fs";
-  import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
   function firebaseSwPlugin(): Plugin {
     return {
@@ -67,11 +66,11 @@ import { defineConfig, type Plugin } from "vite";
     plugins: [
       react(),
       tailwindcss(),
-      runtimeErrorOverlay(),
       firebaseSwPlugin(),
       ...(process.env.NODE_ENV !== "production" &&
       process.env.REPL_ID !== undefined
         ? [
+            await import("@replit/vite-plugin-runtime-error-modal").then((m) => m.default()),
             await import("@replit/vite-plugin-cartographer").then((m) =>
               m.cartographer({
                 root: path.resolve(import.meta.dirname, ".."),
