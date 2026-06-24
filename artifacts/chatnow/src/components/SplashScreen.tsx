@@ -1,16 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function SplashScreen({ onDone }: { onDone: () => void }) {
   const [fading, setFading] = useState(false);
+  const onDoneRef = useRef(onDone);
+
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
 
   useEffect(() => {
     const fadeTimer = setTimeout(() => setFading(true), 2700);
-    const doneTimer = setTimeout(() => onDone(), 3300);
+    const doneTimer = setTimeout(() => onDoneRef.current(), 3300);
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(doneTimer);
     };
-  }, [onDone]);
+  }, []);
 
   return (
     <div
