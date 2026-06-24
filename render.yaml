@@ -2,7 +2,7 @@ services:
     - type: web
       name: chatnow
       env: static
-      buildCommand: corepack enable pnpm && pnpm install --frozen-lockfile && bash render-build.sh
+      buildCommand: bash render-build.sh
       staticPublishPath: artifacts/chatnow/dist/public
       routes:
         - type: rewrite
